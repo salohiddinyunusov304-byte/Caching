@@ -11,6 +11,9 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import org.springframework.context.annotation.Bean;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
@@ -20,6 +23,7 @@ import uz.pdp.caching.repository.PostRepository;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.List;
+import java.util.concurrent.ConcurrentMap;
 
 @SpringBootApplication
 @OpenAPIDefinition(
@@ -45,11 +49,20 @@ import java.util.List;
 )
 
 @ConfigurationPropertiesScan
+@EnableCaching
 public class CachingApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(CachingApplication.class, args);
     }
+
+//    @Bean
+//    public CacheManager cacheManager() {
+//        ConcurrentMapCacheManager cacheManager = new ConcurrentMapCacheManager();
+//        cacheManager.setCacheNames(List.of("posts", "comments", "users"));
+//
+//        return cacheManager;
+//    }
 
     @Bean
     public OpenAPI springOpenAPI() {

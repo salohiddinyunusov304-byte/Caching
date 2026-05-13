@@ -2,59 +2,44 @@ package uz.pdp.caching.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import org.springframework.cache.Cache;
-import org.springframework.cache.CacheManager;
-import org.springframework.cache.concurrent.ConcurrentMapCache;
-import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import uz.pdp.caching.entity.Post;
 import uz.pdp.caching.payload.PostUpdater;
 import uz.pdp.caching.repository.PostRepository;
 import uz.pdp.caching.service.PostService;
 
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 import static javax.swing.UIManager.get;
 
 
 @Service
-public class PostServiceImpl implements PostService {
+@RequiredArgsConstructor
+public class PostServiceImpl2 implements PostService {
     private final PostRepository postRepository;
-    private final CacheManager cacheManager;
-
-    private final Cache cache;
-
-    public PostServiceImpl(PostRepository postRepository, CacheManager cacheManager) {
-        this.postRepository = postRepository;
-        this.cacheManager = cacheManager;
-        this.cache = cacheManager.getCache("posts");
-    }
-//    private final ConcurrentHashMap<Integer, Post> postCache = new ConcurrentHashMap<>();
 
     @Override
     @SneakyThrows
+    @Cacheable(cacheNames = "posts", key = "#id")
     public Post getPostById(Integer id) {
-        Post postFromCache = cache.get(id, Post.class);
-        if (postFromCache != null) {
-            return postFromCache;
-        }
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Post not found..."));
 
         TimeUnit.SECONDS.sleep(2);
-
-        cache.put(id, post);
         return post;
     }
 
     @Override
+    @CacheEvict(cacheNames = "posts", key = "#id")
     public void deleteById(Integer id) {
         postRepository.deleteById(id);
-        cache.evict(id);
     }
 
     @Override
+    @CachePut(cacheNames = "posts", key = "#updater.id()")
     public void updateById(PostUpdater updater) {
         Post post = (Post) get(updater.id());
 
@@ -62,6 +47,5 @@ public class PostServiceImpl implements PostService {
         post.setTitle(updater.title());
         post.setBody(updater.body());
         Post save = postRepository.save(post);
-        cache.put(save.getId(), save);
     }
 }
