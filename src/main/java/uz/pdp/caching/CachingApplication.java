@@ -15,8 +15,8 @@ import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import org.springframework.context.annotation.Bean;
-import tools.jackson.core.type.TypeReference;
-import tools.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.type.TypeReference;
 import uz.pdp.caching.entity.Post;
 import uz.pdp.caching.repository.PostRepository;
 
@@ -56,14 +56,6 @@ public class CachingApplication {
         SpringApplication.run(CachingApplication.class, args);
     }
 
-//    @Bean
-//    public CacheManager cacheManager() {
-//        ConcurrentMapCacheManager cacheManager = new ConcurrentMapCacheManager();
-//        cacheManager.setCacheNames(List.of("posts", "comments", "users"));
-//
-//        return cacheManager;
-//    }
-
     @Bean
     public OpenAPI springOpenAPI() {
         return new OpenAPI()
@@ -93,6 +85,14 @@ public class CachingApplication {
     }
 
     @Bean
+    public CacheManager cacheManager() {
+        ConcurrentMapCacheManager cacheManager = new ConcurrentMapCacheManager();
+        cacheManager.setCacheNames(List.of("posts", "comments", "users"));
+
+        return cacheManager;
+    }
+
+    @Bean
     public ApplicationRunner applicationRunner(ObjectMapper objectMapper, PostRepository postRepository) {
         return args -> {
             URL url = new URL("https://jsonplaceholder.typicode.com/posts");
@@ -102,6 +102,11 @@ public class CachingApplication {
 
             postRepository.saveAll(posts);
         };
+    }
+
+    @Bean
+    public ObjectMapper objectMapper() {
+        return new ObjectMapper();
     }
 }
 
